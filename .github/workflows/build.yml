@@ -10,7 +10,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Update Gradle wrapper
-        run: sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-9.2-bin.zip|' gradle/wrapper/gradle-wrapper.properties
+        run: sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-9.0-bin.zip|' gradle/wrapper/gradle-wrapper.properties
       - run: chmod +x gradlew && ./gradlew build
       - uses: actions/upload-artifact@v4
         with:
