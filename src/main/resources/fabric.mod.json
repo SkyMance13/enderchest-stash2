@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "enderchest_stash",
+  "version": "${version}",
+  "name": "EnderChest Stash",
+  "description": "Press H while an ender chest is open to stash hotbar slots 1,2,5,8,9 + offhand + armor.",
+  "authors": ["You"],
+  "contact": {},
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.enderchest_stash.EnderChestStashClient"
+    ]
+  },
+  "mixins": [
+    "enderchest_stash.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.0",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
