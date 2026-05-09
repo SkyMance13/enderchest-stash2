@@ -29,7 +29,7 @@ public class EnderChestStashClient implements ClientModInitializer {
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (stashAllKey.consumeClick()) {
+            while (stashAllKey.isDown()) {
                 handleStashAll(client);
             }
         });
