@@ -1,10 +1,12 @@
 package com.enderchest_stash;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
@@ -19,8 +21,21 @@ public class EnderChestStashClient implements ClientModInitializer {
     private static final int HOTBAR_SCREEN_BASE = 54;
     public static KeyMapping stashAllKey;@Override
     public void onInitializeClient() {
-        stashAllKey = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.enderchest_stash.stash_all", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_H, KeyMapping.Category.MISC));
-        ClientTickEvents.END_CLIENT_TICK.register(client -> { if (stashAllKey.isDown() && client.screen != null) { handleStashAll(client); } });
+        stashAllKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+                "key.enderchest_stash.stash_all",
+                InputConstants.Type.KEYSYM,
+                GLFW.GLFW_KEY_H,
+                KeyMapping.Category.MISC
+        ));
+        ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
+            if (screen instanceof AbstractContainerScreen) {
+                ScreenKeyboardEvents.afterKeyPress(screen).register((s, key, scancode, modifiers) -> {
+                    if (stashAllKey.matches(key, scancode)) {
+                        handleStashAll((Minecraft) client);
+                    }
+                });
+            }
+        });
     }
 
     private void handleStashAll(Minecraft client) {
