@@ -9,8 +9,10 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Update Gradle wrapper
-        run: sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-9.0-bin.zip|' gradle/wrapper/gradle-wrapper.properties
+      - name: Update build files
+        run: |
+          sed -i "s|id 'fabric-loom' version '.*'|id 'fabric-loom' version '1.13.3'|" build.gradle
+          sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.14.1-bin.zip|' gradle/wrapper/gradle-wrapper.properties
       - run: chmod +x gradlew && ./gradlew build
       - uses: actions/upload-artifact@v4
         with:
