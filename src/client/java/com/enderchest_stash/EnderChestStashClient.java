@@ -20,7 +20,7 @@ public class EnderChestStashClient implements ClientModInitializer {
     public static KeyMapping stashAllKey;@Override
     public void onInitializeClient() {
         stashAllKey = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.enderchest_stash.stash_all", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_H, KeyMapping.Category.MISC));
-        ClientTickEvents.END_CLIENT_TICK.register(client -> { while (stashAllKey.consumeClick()) { handleStashAll(client); } });
+        ClientTickEvents.END_CLIENT_TICK.register(client -> { if (stashAllKey.isDown() && client.screen != null) { handleStashAll(client); } });
     }
 
     private void handleStashAll(Minecraft client) {
