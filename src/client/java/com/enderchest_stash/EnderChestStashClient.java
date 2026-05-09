@@ -25,7 +25,7 @@ public class EnderChestStashClient implements ClientModInitializer {
                 "key.enderchest_stash.stash_all",
                 InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_H,
-                "category.enderchest_stash"
+                net.minecraft.client.KeyMapping.Category.MISC
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
