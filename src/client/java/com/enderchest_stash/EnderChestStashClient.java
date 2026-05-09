@@ -7,104 +7,47 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.platform.InputConstants;
 import org.lwjgl.glfw.GLFW;
 
 public class EnderChestStashClient implements ClientModInitializer {
-
     private static final int[] HOTBAR_INDICES_TO_STASH = {0, 1, 4, 7, 8};
     private static final int OFFHAND_INV_SLOT = 40;
     private static final int[] ARMOR_INV_SLOTS = {36, 37, 38, 39};
     private static final int HOTBAR_SCREEN_BASE = 54;
     public static KeyMapping stashAllKey;@Override
     public void onInitializeClient() {
-        stashAllKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-                "key.enderchest_stash.stash_all",
-                InputConstants.Type.KEYSYM,
-                GLFW.GLFW_KEY_H,
-                KeyMapping.Category.MISC
-        ));
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (stashAllKey.consumeClick()) {
-                handleStashAll(client);
-            }
-        });
+        stashAllKey = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.enderchest_stash.stash_all", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_H, KeyMapping.Category.MISC));
+        ClientTickEvents.END_CLIENT_TICK.register(client -> { while (stashAllKey.consumeClick()) { handleStashAll(client); } });
     }
 
     private void handleStashAll(Minecraft client) {
         if (client.player == null) return;
-        AbstractContainerMenu handler = getEnderChestHandler(client);
-        if (handler == null) return;
-        for (int hi : HOTBAR_INDICES_TO_STASH) {
-            int screenSlot = HOTBAR_SCREEN_BASE + hi;
-            if (screenSlot < handler.slots.size() && !handler.slots.get(screenSlot).getItem().isEmpty()) {
-                quickMove(client, handler, screenSlot);
-            }
-        }
-        if (!client.player.getOffhandItem().isEmpty()) {
-            stashSpecialSlot(client, handler, OFFHAND_INV_SLOT);
-        }
-        for (int armorSlot : ARMOR_INV_SLOTS) {
-            if (!client.player.getInventory().getItem(armorSlot).isEmpty()) {
-                stashSpecialSlot(client, handler, armorSlot);
-            }
-        }
-    }private void stashSpecialSlot(Minecraft client, AbstractContainerMenu handler, int playerInvSlotIndex) {
-        int stagingScreenSlot = findFreeHotbarScreenSlot(handler);
-        if (stagingScreenSlot == -1) {
-            client.player.displayClientMessage(Component.literal("No free hotbar slot!"), true);
-            return;
-        }
-        client.gameMode.handleInventoryMouseClick(handler.containerId, stagingScreenSlot, playerInvSlotIndex, ClickType.SWAP, client.player);
-        quickMove(client, handler, stagingScreenSlot);
-        if (!handler.slots.get(stagingScreenSlot).getItem().isEmpty()) {
-            client.gameMode.handleInventoryMouseClick(handler.containerId, stagingScreenSlot, playerInvSlotIndex, ClickType.SWAP, client.player);
-            client.player.displayClientMessage(Component.literal("Chest is full!"), true);
-        }
+        AbstractContainerMenu h = getHandler(client);
+        if (h == null) return;
+        for (int hi : HOTBAR_INDICES_TO_STASH) { int s = HOTBAR_SCREEN_BASE + hi; if (s < h.slots.size() && !h.slots.get(s).getItem().isEmpty()) quickMove(client, h, s); }
+        if (!client.player.getOffhandItem().isEmpty()) stashSpecial(client, h, OFFHAND_INV_SLOT);
+        for (int a : ARMOR_INV_SLOTS) { if (!client.player.getInventory().getItem(a).isEmpty()) stashSpecial(client, h, a); }
     }
 
-    private void quickMove(Minecraft client, AbstractContainerMenu handler, int screenSlot) {
-        client.gameMode.handleInventoryMouseClick(handler.containerId, screenSlot, 0, ClickType.QUICK_MOVE, client.player);
+    private void stashSpecial(Minecraft client, AbstractContainerMenu h, int inv) {
+        int s = freeSlot(h);
+        if (s == -1) { client.player.displayClientMessage(Component.literal("No free hotbar slot!"), true); return; }
+        client.gameMode.handleInventoryMouseClick(h.containerId, s, inv, ClickType.SWAP, client.player);
+        quickMove(client, h, s);
+        if (!h.slots.get(s).getItem().isEmpty()) { client.gameMode.handleInventoryMouseClick(h.containerId, s, inv, ClickType.SWAP, client.player); client.player.displayClientMessage(Component.literal("Chest is full!"), true); }
     }
-private void stashSpecialSlot(Minecraft client, AbstractContainerMenu handler, int playerInvSlotIndex) {
-        int stagingScreenSlot = findFreeHotbarScreenSlot(handler);
-        if (stagingScreenSlot == -1) {
-            client.player.displayClientMessage(Component.literal("No free hotbar slot!"), true);
-            return;
-        }
-        client.gameMode.handleInventoryMouseClick(handler.containerId, stagingScreenSlot, playerInvSlotIndex, ClickType.SWAP, client.player);
-        quickMove(client, handler, stagingScreenSlot);
-        if (!handler.slots.get(stagingScreenSlot).getItem().isEmpty()) {
-            client.gameMode.handleInventoryMouseClick(handler.containerId, stagingScreenSlot, playerInvSlotIndex, ClickType.SWAP, client.player);
-            client.player.displayClientMessage(Component.literal("Chest is full!"), true);
-        }
-    }
+private void quickMove(Minecraft client, AbstractContainerMenu h, int s) { client.gameMode.handleInventoryMouseClick(h.containerId, s, 0, ClickType.QUICK_MOVE, client.player); }
 
-    private void quickMove(Minecraft client, AbstractContainerMenu handler, int screenSlot) {
-        client.gameMode.handleInventoryMouseClick(handler.containerId, screenSlot, 0, ClickType.QUICK_MOVE, client.player);
-    }
-private int findFreeHotbarScreenSlot(AbstractContainerMenu handler) {
-        for (int i = 0; i < 9; i++) {
-            int idx = HOTBAR_SCREEN_BASE + i;
-            if (idx < handler.slots.size() && handler.slots.get(idx).getItem().isEmpty()) return idx;
-        }
-        return -1;
-    }
+    private int freeSlot(AbstractContainerMenu h) { for (int i = 0; i < 9; i++) { int idx = HOTBAR_SCREEN_BASE + i; if (idx < h.slots.size() && h.slots.get(idx).getItem().isEmpty()) return idx; } return -1; }
 
-    private AbstractContainerMenu getEnderChestHandler(Minecraft client) {
+    private AbstractContainerMenu getHandler(Minecraft client) {
         if (client.player == null) return null;
-        AbstractContainerMenu menu = client.player.containerMenu;
-        if (menu == client.player.inventoryMenu) {
-            client.player.displayClientMessage(Component.literal("Open an ender chest first!"), true);
-            return null;
-        }
-        if (menu.slots.size() < 63) {
-            client.player.displayClientMessage(Component.literal("Not an ender chest!"), true);
-            return null;
-        }
-        return menu;
+        AbstractContainerMenu m = client.player.containerMenu;
+        if (m == client.player.inventoryMenu) { client.player.displayClientMessage(Component.literal("Open an ender chest first!"), true); return null; }
+        if (m.slots.size() < 63) { client.player.displayClientMessage(Component.literal("Not an ender chest!"), true); return null; }
+        return m;
     }
 }
