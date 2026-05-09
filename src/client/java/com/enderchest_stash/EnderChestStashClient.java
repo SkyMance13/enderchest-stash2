@@ -29,7 +29,7 @@ public class EnderChestStashClient implements ClientModInitializer {
         ));
         ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
             if (screen instanceof AbstractContainerScreen) {
-                ScreenKeyboardEvents.afterKeyPress(screen).register((s, key, scancode, modifiers) -> {
+                ScreenKeyboardEvents.afterKeyPress(screen).register((s, key, scancode, modifiers, b) -> {
                     if (stashAllKey.matches(key, scancode)) {
                         handleStashAll((Minecraft) client);
                     }
